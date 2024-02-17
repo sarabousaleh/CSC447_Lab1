@@ -9,19 +9,19 @@
 int mandelbrot(double real, double imag)
 {
     int n;
-    double r = 0.0;
-    double i = 0.0;
+    double r1 = 0.0;
+    double i1 = 0.0;
 
     for (n = 0; n < MAX_ITER; n++)
     {
-        double r2 = r * r;
-        double i2 = i * i;
+        double r2 = r1 * r1;
+        double i2 = i1 * i1;
         if (r2 + i2 > 4.0)
         {
             return n;
         }
-        i = 2.0 * r * i + imag;
-        r = r2 - i2 + real;
+        i1 = 2.0 * r1 * i1 + imag;
+        r1 = r2 - i2 + real;
     }
 
     return MAX_ITER;
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
     }
     if (rank == 0)
     {
-        printf("The com/comp ratio is : %.2f\n", total_comm_comp_ratio);
-        printf("Total execution time: %lf seconds\n", total_execution_time);
-        printf("the number of processes is %d\n", size);
+        printf("The total com/comp ratio is : %.2f\n", total_comm_comp_ratio);
+        printf("The total execution time: %lf seconds\n", total_execution_time);
+        printf("The number of processes used is %d\n", size);
 
         FILE *fp = fopen("mandelbrot.ppm", "wb");
         if (fp == NULL)
