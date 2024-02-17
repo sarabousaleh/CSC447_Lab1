@@ -20,7 +20,7 @@ int mandelbrot(double real, double imag)
         {
             return n;
         }
-        i1 = 2.0 * r * i1 + imag;
+        i1 = 2.0 * r1 * i1 + imag;
         r1 = r2 - i2 + real;
     }
 
@@ -45,7 +45,6 @@ int main(int argc, char **argv)
     {
         if (current_row >= (rank + 1) * rows_per_process)
         {
-        
             break;
         }
 
@@ -59,28 +58,23 @@ int main(int argc, char **argv)
         current_row++;
         completed_rows++;
         int next_row = current_row % HEIGHT;
-        MPI_Status status;
+
+        // Use MPI_Allgather to gather work availability from all processes
+        int *work_availability_all = (int *)malloc(size * sizeof(int));
+        MPI_Allgather(&completed_rows, 1, MPI_INT, work_availability_all, 1, MPI_INT, MPI_COMM_WORLD);
+
+        // Check if any process has work available
         int work_available = 0;
         for (int i = 0; i < size; i++)
         {
-            if (i != rank)
+            if (work_availability_all[i] < rows_per_process)
             {
-                MPI_Send(&next_row, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+                work_available = 1;
+                break;
             }
         }
-        for (int i = 0; i < size; i++)
-        {
-            if (i != rank)
-            {
-                int has_work;
-                MPI_Recv(&has_work, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
-                if (has_work)
-                {
-                    work_available = 1;
-                    break;
-                }
-            }
-        }
+
+        free(work_availability_all);
 
         if (!work_available)
         {
@@ -107,7 +101,7 @@ int main(int argc, char **argv)
     MPI_Reduce(&comm_comp_ratio, &total_comm_comp_ratio, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     if (rank == 0)
     {
-        total_comm_comp_ratio /= size; 
+        total_comm_comp_ratio /= size;
     }
     if (rank == 0)
     {
@@ -130,9 +124,9 @@ int main(int argc, char **argv)
             for (int j = 0; j < WIDTH; j++)
             {
                 unsigned char pixel_value = global_image[i * WIDTH + j];
-                fputc(pixel_value, fp); 
-                fputc(pixel_value, fp); 
-                fputc(pixel_value, fp); 
+                fputc(pixel_value, fp);
+                fputc(pixel_value, fp);
+                fputc(pixel_value, fp);
             }
         }
         fclose(fp);
